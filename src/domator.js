@@ -1,8 +1,15 @@
 import isArray from 'is-array'
 import forEach from 'array-foreach'
-import merge from 'lodash.merge'
+import deepmerge from 'deepmerge'
 
-const nameRegex = /(?:([a-z0-9\-]+)|(?:#|\.)([a-z0-9\-]+)|\[([a-z\-0-9]+)(?:="([^"]+)")?\]|=\s?(.+))/g
+const regexes = {
+  tag: /^([a-z0-9\-]+)/,
+  id: /^#([a-z0-9\-]+)/,
+  className: /^\.([a-z0-9\-]+)/,
+  attr: /^\[([a-z\-0-9]+)(?:="([^"]+)")?\]/,
+  text: /^\s(.+)/
+}
+
 let doc
 
 export default function domator (...args) {
@@ -25,8 +32,19 @@ domator.toString = function toString (node) {
   return div.innerHTML
 }
 
-domator.create = function create (name, attrs) {
-  attrs = merge({}, parseName(name), attrs)
+domator.create = function create (name = '', attrs = {}) {
+  name = parseName(name)
+
+  ;['class', 'className'].forEach(key => {
+    if (typeof name[key] === 'string') name[key] = [name[key]]
+    if (typeof attrs[key] === 'string') attrs[key] = [attrs[key]]
+  })
+
+  attrs = deepmerge(name, attrs)
+
+  attrs['class'] = (attrs['class'] || []).concat(attrs.className).join(' ')
+  if (attrs.className) delete attrs.className
+  if (!attrs['class']) delete attrs['class']
 
   const el = doc.createElement(attrs.tag || 'div')
   delete attrs.tag
@@ -69,27 +87,35 @@ domator.render = function render (item) {
 }
 
 function parseName (name) {
-  let attrs = {}
-  let match = name.match(nameRegex)
+  const attrs = {}
+  let pending = name
 
-  if (!match) return attrs
+  let m
+  do {
+    m = null
 
-  forEach(match, function (s) {
-    let m
-    if (!attrs.tag && /[a-z]/.test(s[0])) {
-      attrs.tag = s
-    } else if (!attrs['class'] && s[0] === '.') {
-      attrs['class'] = s.substr(1)
-    } else if (!attrs.id && s[0] === '#') {
-      attrs.id = s.substr(1)
-    } else if (s[0] === '[') {
-      m = s.match(/\[([a-z\-0-9]+)(?:="([^"]+)")?\]/)
-      attrs[m[1]] = m[2] || m[1]
-    } else if (s[0] === '=') {
-      m = s.match(/=\s?(.+)/)
-      attrs.text = m[1]
+    if ((m = pending.match(regexes.tag))) {
+      attrs.tag = m[1]
+    } else if ((m = pending.match(regexes.id))) {
+      attrs.id = m[1]
+    } else if ((m = pending.match(regexes.className))) {
+      if (!attrs.className) attrs.className = []
+      attrs.className.push(m[1])
+    } else if ((m = pending.match(regexes.attr))) {
+      attrs[m[1]] = m[2]
     }
-  })
+
+    if (m) pending = pending.slice(m[0].length)
+  } while (m)
+
+  if (pending && (m = pending.match(regexes.text))) {
+    attrs.text = m[1]
+    pending = pending.slice(m[0].length)
+  }
+
+  if (pending) {
+    throw new Error(`There was an error when parsing element name: "${name}"`)
+  }
 
   return attrs
 }

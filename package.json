@@ -38,8 +38,8 @@
   },
   "dependencies": {
     "array-foreach": "^1.0.1",
-    "is-array": "^1.0.1",
-    "lodash.merge": "^3.3.2"
+    "deepmerge": "^0.2.10",
+    "is-array": "^1.0.1"
   },
   "standard": {
     "globals": [
@@ -50,6 +50,10 @@
       "after",
       "afterEach",
       "define"
+    ],
+    "ignore": [
+      "domator.js",
+      "dist"
     ]
   }
 }

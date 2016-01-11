@@ -48,7 +48,7 @@ describe('domator', function () {
 
   it('should create a `div` with the text "Hello World!".', function () {
     // with domator
-    const element = d('div= Hello World!')
+    const element = d('div Hello World!')
 
     // with document
     const expected = document.createElement('div')
@@ -95,6 +95,22 @@ describe('domator', function () {
     expected.appendChild(document.createElement('div'))
     expected.appendChild(document.createElement('div'))
     expected.appendChild(document.createElement('div'))
+
+    assert(expected.isEqualNode(element))
+  })
+
+  it('should join classes from the selector and attributes.', function () {
+    // with domator
+    const element = d('div.two', {
+      'class': 'one',
+      className: 'three'
+    })
+
+    // with document
+    const expected = document.createElement('div')
+    expected.classList.add('one')
+    expected.classList.add('two')
+    expected.classList.add('three')
 
     assert(expected.isEqualNode(element))
   })

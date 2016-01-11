@@ -1,6 +1,6 @@
 # Domator
 
-Simple DOM elements creation on Javascript, using something like a CSS selector. Also works on server-side.
+Simple DOM elements creation on Javascript, using [Jade](http://jade-lang.com/) like syntax. Also works on server-side.
 
 ## Usage
 
@@ -99,18 +99,18 @@ var el = d('div', {
 })
 
 /* Produces:
-<div class="the-class" id="the-id" data-some="the-custom-value">
+<div class="the-class" id="the-id" data-custom="the-custom-value">
   Hello!
 </div>
 */
 ```
 
-The same as the last one, but, with a slick selector:
+The same as the last one, but, with a slick syntax:
 ```javascript
 var el = d('#the-id.the-class[data-custom="the-custom-value"]= Hello!')
 
 /* Produces:
-<div class="the-class" id="the-id" data-some="the-custom-value">
+<div class="the-class" id="the-id" data-custom="the-custom-value">
   Hello!
 </div>
 */
