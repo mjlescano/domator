@@ -15,13 +15,20 @@ var _arrayForeach = require('array-foreach');
 
 var _arrayForeach2 = _interopRequireDefault(_arrayForeach);
 
-var _lodash = require('lodash.merge');
+var _deepmerge = require('deepmerge');
 
-var _lodash2 = _interopRequireDefault(_lodash);
+var _deepmerge2 = _interopRequireDefault(_deepmerge);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var nameRegex = /(?:([a-z0-9\-]+)|(?:#|\.)([a-z0-9\-]+)|\[([a-z\-0-9]+)(?:="([^"]+)")?\]|=\s?(.+))/g;
+var regexes = {
+  tag: /^([a-z0-9\-]+)/,
+  id: /^#([a-z0-9\-]+)/,
+  className: /^\.([a-z0-9\-]+)/,
+  attr: /^\[([a-z\-0-9]+)(?:="([^"]+)")?\]/,
+  text: /^\s(.+)/
+};
+
 var doc = undefined;
 
 function domator() {
@@ -48,8 +55,20 @@ domator.toString = function toString(node) {
   return div.innerHTML;
 };
 
-domator.create = function create(name, attrs) {
-  attrs = (0, _lodash2.default)({}, parseName(name), attrs);
+domator.create = function create() {
+  var name = arguments.length <= 0 || arguments[0] === undefined ? '' : arguments[0];
+  var attrs = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+  name = parseName(name);['class', 'className'].forEach(function (key) {
+    if (typeof name[key] === 'string') name[key] = [name[key]];
+    if (typeof attrs[key] === 'string') attrs[key] = [attrs[key]];
+  });
+
+  attrs = (0, _deepmerge2.default)(name, attrs);
+
+  attrs['class'] = (attrs['class'] || []).concat(attrs.className).join(' ');
+  if (attrs.className) delete attrs.className;
+  if (!attrs['class']) delete attrs['class'];
 
   var el = doc.createElement(attrs.tag || 'div');
   delete attrs.tag;
@@ -101,26 +120,34 @@ domator.render = function render(item) {
 
 function parseName(name) {
   var attrs = {};
-  var match = name.match(nameRegex);
+  var pending = name;
 
-  if (!match) return attrs;
+  var m = undefined;
+  do {
+    m = null;
 
-  (0, _arrayForeach2.default)(match, function (s) {
-    var m = undefined;
-    if (!attrs.tag && /[a-z]/.test(s[0])) {
-      attrs.tag = s;
-    } else if (!attrs['class'] && s[0] === '.') {
-      attrs['class'] = s.substr(1);
-    } else if (!attrs.id && s[0] === '#') {
-      attrs.id = s.substr(1);
-    } else if (s[0] === '[') {
-      m = s.match(/\[([a-z\-0-9]+)(?:="([^"]+)")?\]/);
-      attrs[m[1]] = m[2] || m[1];
-    } else if (s[0] === '=') {
-      m = s.match(/=\s?(.+)/);
-      attrs.text = m[1];
+    if (m = pending.match(regexes.tag)) {
+      attrs.tag = m[1];
+    } else if (m = pending.match(regexes.id)) {
+      attrs.id = m[1];
+    } else if (m = pending.match(regexes.className)) {
+      if (!attrs.className) attrs.className = [];
+      attrs.className.push(m[1]);
+    } else if (m = pending.match(regexes.attr)) {
+      attrs[m[1]] = m[2];
     }
-  });
+
+    if (m) pending = pending.slice(m[0].length);
+  } while (m);
+
+  if (pending && (m = pending.match(regexes.text))) {
+    attrs.text = m[1];
+    pending = pending.slice(m[0].length);
+  }
+
+  if (pending) {
+    throw new Error('There was an error when parsing element name: "' + name + '"');
+  }
 
   return attrs;
 }
