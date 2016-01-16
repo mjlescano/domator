@@ -17,7 +17,7 @@ export default function domator (...args) {
     throw new Error('Need to call domator.setDocument(document) first.')
   }
 
-  return domator.render(parse(args))
+  return render(parse(args))
 }
 
 domator.setDocument = function setDocument (newDoc) {
@@ -42,10 +42,6 @@ domator.create = function create (name = '', attrs = {}) {
 
   attrs = deepmerge(name, attrs)
 
-  attrs['class'] = (attrs['class'] || []).concat(attrs.className).join(' ')
-  if (attrs.className) delete attrs.className
-  if (!attrs['class']) delete attrs['class']
-
   const el = doc.createElement(attrs.tag || 'div')
   delete attrs.tag
 
@@ -54,6 +50,16 @@ domator.create = function create (name = '', attrs = {}) {
     delete attrs.text
   }
 
+  setAttributes(el, attrs)
+
+  return el
+}
+
+function setAttributes (el, attrs = {}) {
+  attrs['class'] = (attrs['class'] || []).concat(attrs.className).join(' ')
+  if (attrs.className) delete attrs.className
+  if (!attrs['class']) delete attrs['class']
+
   for (let prop in attrs) if (attrs.hasOwnProperty(prop)) {
     el.setAttribute(prop, attrs[prop] || prop)
   }
@@ -61,25 +67,29 @@ domator.create = function create (name = '', attrs = {}) {
   return el
 }
 
-domator.render = function render (item) {
+function render (item) {
   if (isArray(item)) {
-    if (item.length === 1) return domator.render(item[0])
+    if (item.length === 1) return render(item[0])
 
     let wrapper = doc.createDocumentFragment()
 
     forEach(item, function (item) {
-      let el = domator.render(item)
+      let el = render(item)
       wrapper.appendChild(el)
     })
 
     return wrapper
   }
 
-  if (item.tag) item.el = domator.create(item.tag, item.attrs)
+  if (item.tag) {
+    item.el = domator.create(item.tag, item.attrs)
+  } else {
+    setAttributes(item.el, item.attrs)
+  }
 
   if (item.children) {
     forEach(item.children, function (child) {
-      item.el.appendChild(domator.render(child))
+      item.el.appendChild(render(child))
     })
   }
 

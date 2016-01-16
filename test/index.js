@@ -114,4 +114,17 @@ describe('domator', function () {
 
     assert(expected.isEqualNode(element))
   })
+
+  it('should set attributes to an existing element.', function () {
+    // with domator
+    const element = d(document.createElement('div'), {
+      id: 'some-id'
+    })
+
+    // with document
+    const expected = document.createElement('div')
+    expected.id = 'some-id'
+
+    assert(expected.isEqualNode(element))
+  })
 })
