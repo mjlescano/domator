@@ -14,7 +14,7 @@ npm install domator --save
 Then, use it:
 ```javascript
 var d = require('domator')
-var el = d('p.the-class= Hello!') // <p class="the-class">Hello!</p>
+var el = d('p.the-class Hello!') // <p class="the-class">Hello!</p>
 ```
 
 ### Browser
@@ -22,7 +22,7 @@ var el = d('p.the-class= Hello!') // <p class="the-class">Hello!</p>
 <script src="dist/domator.min.js"></script>
 <script>
   ;(function() {
-    var el = domator('p.the-class= Hello!') // <p class="the-class">Hello!</p>
+    var el = domator('p.the-class Hello!') // <p class="the-class">Hello!</p>
 
     document.body.appendChild(el)
   })()
@@ -39,7 +39,7 @@ var d = require('domator')
 
 d.setDocument(jsdom.jsdom())
 
-var el = d('p.the-class= Hello!') // <p class="the-class">Hello!</p>
+var el = d('p.the-class Hello!') // <p class="the-class">Hello!</p>
 ```
 
 ## API
@@ -63,7 +63,7 @@ The domator selector is used to be able to create an element with default values
 super easy, all the values are optional. A complete example would be:
 
 ```
-tag#id.class[attr="value"]= Text
+tag#id.class[attr="value"] Text
 ```
 
 * `tag`
@@ -81,9 +81,9 @@ tag#id.class[attr="value"]= Text
   * Multiple values allowed.
   * `"value"` is optional.
     * e.g.: `input[required]` creates `<input required>`
-* `= Text`
-  * Everything after the `= ` will be added as text content on the element.
-  * e.g.: `div= Hello world!` creates `<div>Hello world!</div>`
+* ` Text`
+  * Everything after the whitespace will be added as text content on the element.
+  * e.g.: `div Hello world!` creates `<div>Hello world!</div>`
 
 ### `attrs`
 
@@ -179,7 +179,7 @@ var el = d('div', {
 
 The same as the last one, but, with a slick syntax:
 ```javascript
-var el = d('#the-id.the-class[data-custom="the-custom-value"]= Hello!')
+var el = d('#the-id.the-class[data-custom="the-custom-value"] Hello!')
 
 /* Produces:
 <div class="the-class" id="the-id" data-custom="the-custom-value">
