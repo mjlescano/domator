@@ -154,7 +154,7 @@ function domator() {
     args[_key] = arguments[_key];
   }
 
-  return domator.render(parse(args));
+  return render(parse(args));
 }
 
 domator.setDocument = function setDocument(newDoc) {
@@ -180,10 +180,6 @@ domator.create = function create() {
 
   attrs = (0, _deepmerge2.default)(name, attrs);
 
-  attrs['class'] = (attrs['class'] || []).concat(attrs.className).join(' ');
-  if (attrs.className) delete attrs.className;
-  if (!attrs['class']) delete attrs['class'];
-
   var el = doc.createElement(attrs.tag || 'div');
   delete attrs.tag;
 
@@ -192,24 +188,36 @@ domator.create = function create() {
     delete attrs.text;
   }
 
+  setAttributes(el, attrs);
+
+  return el;
+};
+
+function setAttributes(el) {
+  var attrs = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+  attrs['class'] = (attrs['class'] || []).concat(attrs.className).join(' ');
+  if (attrs.className) delete attrs.className;
+  if (!attrs['class']) delete attrs['class'];
+
   for (var prop in attrs) {
     if (attrs.hasOwnProperty(prop)) {
       el.setAttribute(prop, attrs[prop] || prop);
     }
   }return el;
-};
+}
 
-domator.render = function render(item) {
+function render(item) {
   if ((0, _isArray2.default)(item)) {
     var _ret = function () {
       if (item.length === 1) return {
-          v: domator.render(item[0])
+          v: render(item[0])
         };
 
       var wrapper = doc.createDocumentFragment();
 
       (0, _arrayForeach2.default)(item, function (item) {
-        var el = domator.render(item);
+        var el = render(item);
         wrapper.appendChild(el);
       });
 
@@ -221,16 +229,20 @@ domator.render = function render(item) {
     if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
   }
 
-  if (item.tag) item.el = domator.create(item.tag, item.attrs);
+  if (item.tag) {
+    item.el = domator.create(item.tag, item.attrs);
+  } else {
+    setAttributes(item.el, item.attrs);
+  }
 
   if (item.children) {
     (0, _arrayForeach2.default)(item.children, function (child) {
-      item.el.appendChild(domator.render(child));
+      item.el.appendChild(render(child));
     });
   }
 
   return item.el;
-};
+}
 
 function parseName(name) {
   var attrs = {};
