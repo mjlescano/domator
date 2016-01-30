@@ -2,16 +2,23 @@
 
 Simple DOM elements creation on Javascript, using [Jade](http://jade-lang.com/) like syntax. Also works on server-side.
 
-## Usage
+## Install
 
-### With npm
-
-First, install it:
 ```
 npm install domator --save
 ```
 
-Then, use it:
+## Table of Contents
+
+- [Usage](#usage)
+- [API](#api)
+- [Examples](#examples)
+- [Testing](#tests)
+
+## Usage
+
+### With CommonJS
+
 ```javascript
 var d = require('domator')
 var el = d('p.the-class Hello!') // <p class="the-class">Hello!</p>
