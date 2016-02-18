@@ -1,6 +1,6 @@
 # Domator
 
-Simple DOM elements creation on Javascript, using [Jade](http://jade-lang.com/) like syntax. Also works on server-side.
+Simple DOM elements creation on Javascript, using something like a CSS selector syntax, with only 180 LOC. Also works on server-side.
 
 ## Install
 
