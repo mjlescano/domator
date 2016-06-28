@@ -11,8 +11,8 @@ npm install domator --save
 ## Table of Contents
 
 - [Usage](#usage)
-- [API](#api)
 - [Examples](#examples)
+- [API](#api)
 - [Testing](#tests)
 
 ## Usage
@@ -38,7 +38,7 @@ var el = d('p.the-class Hello!') // <p class="the-class">Hello!</p>
 
 ### Node.js
 
-To use it on server side, first, you must set a valid `document` element:
+To use it on server side, you must set a valid `document` element first:
 
 ```javascript
 var jsdom = require('jsdom')
@@ -48,78 +48,6 @@ d.setDocument(jsdom.jsdom())
 
 var el = d('p.the-class Hello!') // <p class="the-class">Hello!</p>
 ```
-
-## API
-
-### domator()
-
-Using the `domator()` function you can create any amount of DOM Nodes, with and
-infinit amount of children.
-
-```javascript
-domator(el, attrs, [children...] [, el, attrs, [children...]]...)
-```
-
-### `el`
-* Required
-* Type: Domator selector or a [`Node Element`](https://developer.mozilla.org/en-US/docs/Web/API/Element).
-
-#### Domator Selector
-
-The domator selector is used to be able to create an element with default values
-super easy, all the values are optional. A complete example would be:
-
-```
-tag#id.class[attr="value"] Text
-```
-
-* `tag`
-  * default: `div`
-  * could be any value composed only by with letters, numbers and hyphens (-).
-* `#id`
-  * `id=` to be setted to the element.
-  * can only be one `#id` defined.
-* `.class`
-  * `class=` value to be setted to the element.
-  * Multiple values allowed.
-  * e.g.: `div.one.two` creates an `<div class="one two"></div>`
-* `[attr="value"]`
-  * Custom attribute to set to the element.
-  * Multiple values allowed.
-  * `"value"` is optional.
-    * e.g.: `input[required]` creates `<input required>`
-* ` Text`
-  * Everything after the whitespace will be added as text content on the element.
-  * e.g.: `div Hello world!` creates `<div>Hello world!</div>`
-
-### `attrs`
-
-* Optional
-* Type: `object`
-
-Object of attributes to be setted on the element.
-
-### `children`
-
-* Optional
-* Type: `Array`
-
-Array with the children to be added to the main element. The array uses the same
-interface as the `doomator()` function.
-
-### domator.setDocument(document)
-
-Takes a valid [`Document`](https://developer.mozilla.org/en-US/docs/Web/API/Document) element.
-It's needed on other environments that the browser, when there is no a default `window.document`.
-
-### domator.toString(node)
-
-Helper function to convert existing node elements to string.
-
-### domator.create(element, attributes)
-
-Helper function used internally to create elements, takes a [Domator Selector](#domator-selector) and
-optionally an `attributes` object.
 
 ## Examples
 
@@ -221,6 +149,86 @@ var el = d('div.the-parent', [span])
 </div>
 */
 ```
+
+## API
+
+### domator()
+
+Using the `domator()` function you can create any amount of DOM Nodes, with and
+infinite amount of children.
+
+```javascript
+domator(el, attrs, [children...] [, el, attrs, [children...]]...)
+```
+
+### `el`
+* Required
+* Type: Domator selector or a [`Node Element`](https://developer.mozilla.org/en-US/docs/Web/API/Element).
+
+#### Domator Selector
+
+The domator selector is used to be able to create an element with default values
+super easy, all the values are optional. A complete example would be:
+
+```
+tag#id.class-name[attr="value"] Hello world!
+```
+
+* `tag`
+  * Default: `div`
+  * Could be any value composed only with letters, numbers, or hyphens (-).
+  * Optional: in the case you define an `id`, `class`, or `attr`.
+    * e.g.: `.the-class` produces `<div class="the-class"></div>`
+* `#id`
+  * `id=` of the element.
+  * Can only be one `#id` defined.
+* `.class-name`
+  * `class="class-name"` value to be setted to the element.
+  * Multiple values allowed.
+    * e.g.: `.one.two` creates `<div class="one two"></div>`
+* `[attr="value"]`
+  * Custom attribute to set to the element.
+  * Multiple values allowed.
+  * `"value"` is optional.
+    * e.g.: `input[required]` creates `<input required>`
+* ` Hello world!`
+  * Everything after the whitespace will be added as text content on the element.
+  * e.g.: `div Hello world!` creates `<div>Hello world!</div>`
+
+### `attrs`
+
+* Optional
+* Type: `object`
+
+Attributes of the element, e.g.:
+```javascript
+domator('div', {"data-something": "hello"}) // Produces <div data-something="hello"></div>
+```
+
+### `children`
+
+* Optional
+* Type: `Array`
+
+Array with children elements to be added inside the element. The array receives the same arguments as the `domator(...)` function. e.g.:
+
+```javascript
+domator('div.parent', ['span.child']) // Produces: <div class="parent"><span class="child"></span></div>
+```
+
+### domator.setDocument(document)
+
+Takes a valid [`Document`](https://developer.mozilla.org/en-US/docs/Web/API/Document) element.
+It's needed when used on other environments than the browser, where is no default `window.document`.
+
+### domator.toString(node)
+
+Helper function to convert existing node elements to string.
+
+### domator.create(element, attributes)
+
+Helper function used internally to create elements, takes a [Domator Selector](#domator-selector) and
+optionally an `attributes` object.
 
 ## Tests
 ```
