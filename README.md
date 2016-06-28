@@ -13,6 +13,7 @@ npm install domator --save
 - [Usage](#usage)
 - [Examples](#examples)
 - [API](#api)
+- [Server side](#server-side-usage)
 - [Testing](#tests)
 
 ## Usage
@@ -22,6 +23,8 @@ npm install domator --save
 ```javascript
 var d = require('domator')
 var el = d('p.the-class Hello!') // <p class="the-class">Hello!</p>
+
+document.body.appendChild(el)
 ```
 
 ### Browser
@@ -30,23 +33,10 @@ var el = d('p.the-class Hello!') // <p class="the-class">Hello!</p>
 <script>
   ;(function() {
     var el = domator('p.the-class Hello!') // <p class="the-class">Hello!</p>
-
+    
     document.body.appendChild(el)
   })()
 </script>
-```
-
-### Node.js
-
-To use it on server side, you must set a valid `document` element first:
-
-```javascript
-var jsdom = require('jsdom')
-var d = require('domator')
-
-d.setDocument(jsdom.jsdom())
-
-var el = d('p.the-class Hello!') // <p class="the-class">Hello!</p>
 ```
 
 ## Examples
@@ -229,6 +219,20 @@ Helper function to convert existing node elements to string.
 
 Helper function used internally to create elements, takes a [Domator Selector](#domator-selector) and
 optionally an `attributes` object.
+
+
+## Server side usage
+
+To use it on server side, you must set a valid `document` element first:
+
+```javascript
+var jsdom = require('jsdom')
+var d = require('domator')
+
+d.setDocument(jsdom.jsdom())
+
+var el = d('p.the-class Hello!') // <p class="the-class">Hello!</p>
+```
 
 ## Tests
 ```
