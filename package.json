@@ -1,6 +1,6 @@
 {
   "name": "domator",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Minimal & Fast DOM creation.",
   "main": "domator.js",
   "scripts": {
