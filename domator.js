@@ -1,25 +1,16 @@
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = domator;
+var isArray = _interopDefault(require('is-array'));
+var forEach = _interopDefault(require('array-foreach'));
+var deepmerge = _interopDefault(require('deepmerge'));
 
-var _isArray = require('is-array');
-
-var _isArray2 = _interopRequireDefault(_isArray);
-
-var _arrayForeach = require('array-foreach');
-
-var _arrayForeach2 = _interopRequireDefault(_arrayForeach);
-
-var _deepmerge = require('deepmerge');
-
-var _deepmerge2 = _interopRequireDefault(_deepmerge);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+  return typeof obj;
+} : function (obj) {
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj;
+};
 
 var regexes = {
   tag: /^([a-z0-9\-]+)/,
@@ -29,7 +20,7 @@ var regexes = {
   text: /^\s(.+)/
 };
 
-var doc = undefined;
+var doc = void 0;
 
 function domator() {
   if (!doc) {
@@ -64,7 +55,7 @@ domator.create = function create() {
     if (typeof attrs[key] === 'string') attrs[key] = [attrs[key]];
   });
 
-  attrs = (0, _deepmerge2.default)(name, attrs);
+  attrs = deepmerge(name, attrs);
 
   var el = doc.createElement(attrs.tag || 'div');
   delete attrs.tag;
@@ -94,7 +85,7 @@ function setAttributes(el) {
 }
 
 function render(item) {
-  if ((0, _isArray2.default)(item)) {
+  if (isArray(item)) {
     var _ret = function () {
       if (item.length === 1) return {
           v: render(item[0])
@@ -102,7 +93,7 @@ function render(item) {
 
       var wrapper = doc.createDocumentFragment();
 
-      (0, _arrayForeach2.default)(item, function (item) {
+      forEach(item, function (item) {
         var el = render(item);
         wrapper.appendChild(el);
       });
@@ -122,7 +113,7 @@ function render(item) {
   }
 
   if (item.children) {
-    (0, _arrayForeach2.default)(item.children, function (child) {
+    forEach(item.children, function (child) {
       item.el.appendChild(render(child));
     });
   }
@@ -134,7 +125,7 @@ function parseName(name) {
   var attrs = {};
   var pending = name;
 
-  var m = undefined;
+  var m = void 0;
   do {
     m = null;
 
@@ -166,7 +157,7 @@ function parseName(name) {
 
 function parse(args) {
   var items = [];
-  var item = undefined;
+  var item = void 0;
   while (item = parseNext(args)) {
     items.push(item);
   }return items;
@@ -183,8 +174,8 @@ function parseNext(args) {
       item.el = val;
     } else if (typeof val === 'string') {
       item.tag = val;
-    } else if ((0, _isArray2.default)(val)) {
-      var child = undefined;
+    } else if (isArray(val)) {
+      var child = void 0;
       while (child = parseNext(val)) {
         item.children.push(child);
       }
@@ -206,12 +197,4 @@ if (typeof window !== 'undefined' && window.document) {
   domator.setDocument(window.document);
 }
 
-if (typeof module === 'undefined') {
-  if (typeof define === 'function' && define.amd) {
-    define([], function () {
-      return domator;
-    });
-  } else if (typeof window !== 'undefined') {
-    window.domator = domator;
-  }
-}
+module.exports = domator;

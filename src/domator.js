@@ -12,7 +12,7 @@ const regexes = {
 
 let doc
 
-export default function domator (...args) {
+function domator (...args) {
   if (!doc) {
     throw new Error('Need to call domator.setDocument(document) first.')
   }
@@ -169,12 +169,4 @@ if (typeof window !== 'undefined' && window.document) {
   domator.setDocument(window.document)
 }
 
-if (typeof module === 'undefined') {
-  if (typeof define === 'function' && define.amd) {
-    define([], function () {
-      return domator
-    })
-  } else if (typeof window !== 'undefined') {
-    window.domator = domator
-  }
-}
+export default domator

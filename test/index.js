@@ -1,6 +1,6 @@
 import assert from 'assert'
 import { jsdom } from 'jsdom'
-import d from '../src/domator'
+import d from '../domator'
 
 const document = jsdom()
 
