@@ -1,5 +1,7 @@
 # Domator
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/mjlescano/domator.svg)](https://greenkeeper.io/)
+
 Simple DOM elements creation on Javascript, using something like a CSS selector syntax, with only 180 LOC. Also works on server-side.
 
 ## Install
