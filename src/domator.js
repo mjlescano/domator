@@ -3,10 +3,10 @@ import forEach from 'array-foreach'
 import deepmerge from 'deepmerge'
 
 const regexes = {
-  tag: /^([a-z0-9\-]+)/,
-  id: /^#([a-z0-9\-]+)/,
-  className: /^\.([a-z0-9\-]+)/,
-  attr: /^\[([a-z\-0-9]+)(?:="([^"]+)")?\]/,
+  tag: /^([a-z0-9\-]+)/i,
+  id: /^#([a-z0-9\-]+)/i,
+  className: /^\.([a-z0-9\-]+)/i,
+  attr: /^\[([a-z\-0-9]+)(?:="([^"]+)")?\]/i,
   text: /^\s(.*)/
 }
 
