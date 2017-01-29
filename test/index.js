@@ -1,6 +1,6 @@
-import assert from 'assert'
-import { jsdom } from 'jsdom'
-import d from '../domator'
+const assert = require('assert')
+const { jsdom } = require('jsdom')
+const d = require('../domator')
 
 const document = jsdom()
 

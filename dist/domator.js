@@ -1,130 +1,131 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.domator = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-'use strict';
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	(global.domator = factory());
+}(this, (function () { 'use strict';
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+/**
+ * isArray
+ */
 
-var isArray = _interopDefault(require('is-array'));
-var forEach = _interopDefault(require('array-foreach'));
-var deepmerge = _interopDefault(require('deepmerge'));
+var isArray = Array.isArray;
+
+/**
+ * toString
+ */
+
+var str = Object.prototype.toString;
+
+/**
+ * Whether or not the given `val`
+ * is an array.
+ *
+ * example:
+ *
+ *        isArray([]);
+ *        // > true
+ *        isArray(arguments);
+ *        // > false
+ *        isArray('');
+ *        // > false
+ *
+ * @param {mixed} val
+ * @return {bool}
+ */
+
+var index = isArray || function (val) {
+  return !! val && '[object Array]' == str.call(val);
+};
+
+/**
+ * array-foreach
+ *   Array#forEach ponyfill for older browsers
+ *   (Ponyfill: A polyfill that doesn't overwrite the native method)
+ * 
+ * https://github.com/twada/array-foreach
+ *
+ * Copyright (c) 2015-2016 Takuto Wada
+ * Licensed under the MIT license.
+ *   https://github.com/twada/array-foreach/blob/master/MIT-LICENSE
+ */
+var index$1 = function forEach (ary, callback, thisArg) {
+    if (ary.forEach) {
+        ary.forEach(callback, thisArg);
+        return;
+    }
+    for (var i = 0; i < ary.length; i+=1) {
+        callback.call(thisArg, ary[i], i, ary);
+    }
+};
+
+var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+
+
+
+
+function createCommonjsModule(fn, module) {
+	return module = { exports: {} }, fn(module, module.exports), module.exports;
+}
+
+var index$2 = createCommonjsModule(function (module, exports) {
+(function (root, factory) {
+    if (typeof undefined === 'function' && undefined.amd) {
+        undefined(factory);
+    } else {
+        module.exports = factory();
+    }
+}(commonjsGlobal, function () {
+
+return function deepmerge(target, src) {
+    var array = Array.isArray(src);
+    var dst = array && [] || {};
+
+    if (array) {
+        target = target || [];
+        dst = dst.concat(target);
+        src.forEach(function(e, i) {
+            if (typeof dst[i] === 'undefined') {
+                dst[i] = e;
+            } else if (typeof e === 'object') {
+                dst[i] = deepmerge(target[i], e);
+            } else {
+                if (target.indexOf(e) === -1) {
+                    dst.push(e);
+                }
+            }
+        });
+    } else {
+        if (target && typeof target === 'object') {
+            Object.keys(target).forEach(function (key) {
+                dst[key] = target[key];
+            });
+        }
+        Object.keys(src).forEach(function (key) {
+            if (typeof src[key] !== 'object' || !src[key]) {
+                dst[key] = src[key];
+            }
+            else {
+                if (!target[key]) {
+                    dst[key] = src[key];
+                } else {
+                    dst[key] = deepmerge(target[key], src[key]);
+                }
+            }
+        });
+    }
+
+    return dst;
+}
+
+}));
+});
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
   return typeof obj;
 } : function (obj) {
   return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
 };
-
-var asyncGenerator = function () {
-  function AwaitValue(value) {
-    this.value = value;
-  }
-
-  function AsyncGenerator(gen) {
-    var front, back;
-
-    function send(key, arg) {
-      return new Promise(function (resolve, reject) {
-        var request = {
-          key: key,
-          arg: arg,
-          resolve: resolve,
-          reject: reject,
-          next: null
-        };
-
-        if (back) {
-          back = back.next = request;
-        } else {
-          front = back = request;
-          resume(key, arg);
-        }
-      });
-    }
-
-    function resume(key, arg) {
-      try {
-        var result = gen[key](arg);
-        var value = result.value;
-
-        if (value instanceof AwaitValue) {
-          Promise.resolve(value.value).then(function (arg) {
-            resume("next", arg);
-          }, function (arg) {
-            resume("throw", arg);
-          });
-        } else {
-          settle(result.done ? "return" : "normal", result.value);
-        }
-      } catch (err) {
-        settle("throw", err);
-      }
-    }
-
-    function settle(type, value) {
-      switch (type) {
-        case "return":
-          front.resolve({
-            value: value,
-            done: true
-          });
-          break;
-
-        case "throw":
-          front.reject(value);
-          break;
-
-        default:
-          front.resolve({
-            value: value,
-            done: false
-          });
-          break;
-      }
-
-      front = front.next;
-
-      if (front) {
-        resume(front.key, front.arg);
-      } else {
-        back = null;
-      }
-    }
-
-    this._invoke = send;
-
-    if (typeof gen.return !== "function") {
-      this.return = undefined;
-    }
-  }
-
-  if (typeof Symbol === "function" && Symbol.asyncIterator) {
-    AsyncGenerator.prototype[Symbol.asyncIterator] = function () {
-      return this;
-    };
-  }
-
-  AsyncGenerator.prototype.next = function (arg) {
-    return this._invoke("next", arg);
-  };
-
-  AsyncGenerator.prototype.throw = function (arg) {
-    return this._invoke("throw", arg);
-  };
-
-  AsyncGenerator.prototype.return = function (arg) {
-    return this._invoke("return", arg);
-  };
-
-  return {
-    wrap: function (fn) {
-      return function () {
-        return new AsyncGenerator(fn.apply(this, arguments));
-      };
-    },
-    await: function (value) {
-      return new AwaitValue(value);
-    }
-  };
-}();
 
 var regexes = {
   tag: /^([a-z0-9\-]+)/i,
@@ -169,7 +170,7 @@ domator.create = function create() {
     if (typeof attrs[key] === 'string') attrs[key] = [attrs[key]];
   });
 
-  attrs = deepmerge(name, attrs);
+  attrs = index$2(name, attrs);
 
   var el = doc.createElement(attrs.tag || 'div');
   delete attrs.tag;
@@ -199,7 +200,7 @@ function setAttributes(el) {
 }
 
 function render(item) {
-  if (isArray(item)) {
+  if (index(item)) {
     var _ret = function () {
       if (item.length === 1) return {
           v: render(item[0])
@@ -207,7 +208,7 @@ function render(item) {
 
       var wrapper = doc.createDocumentFragment();
 
-      forEach(item, function (item) {
+      index$1(item, function (item) {
         var el = render(item);
         wrapper.appendChild(el);
       });
@@ -227,7 +228,7 @@ function render(item) {
   }
 
   if (item.children) {
-    forEach(item.children, function (child) {
+    index$1(item.children, function (child) {
       item.el.appendChild(render(child));
     });
   }
@@ -288,7 +289,7 @@ function parseNext(args) {
       item.el = val;
     } else if (typeof val === 'string') {
       item.tag = val;
-    } else if (isArray(val)) {
+    } else if (index(val)) {
       var child = void 0;
       while (child = parseNext(val)) {
         item.children.push(child);
@@ -311,119 +312,6 @@ if (typeof window !== 'undefined' && window.document) {
   domator.setDocument(window.document);
 }
 
-module.exports = domator;
-},{"array-foreach":2,"deepmerge":3,"is-array":4}],2:[function(require,module,exports){
-/**
- * array-foreach
- *   Array#forEach ponyfill for older browsers
- *   (Ponyfill: A polyfill that doesn't overwrite the native method)
- * 
- * https://github.com/twada/array-foreach
- *
- * Copyright (c) 2015-2016 Takuto Wada
- * Licensed under the MIT license.
- *   https://github.com/twada/array-foreach/blob/master/MIT-LICENSE
- */
-'use strict';
+return domator;
 
-module.exports = function forEach (ary, callback, thisArg) {
-    if (ary.forEach) {
-        ary.forEach(callback, thisArg);
-        return;
-    }
-    for (var i = 0; i < ary.length; i+=1) {
-        callback.call(thisArg, ary[i], i, ary);
-    }
-};
-
-},{}],3:[function(require,module,exports){
-(function (root, factory) {
-    if (typeof define === 'function' && define.amd) {
-        define(factory);
-    } else if (typeof exports === 'object') {
-        module.exports = factory();
-    } else {
-        root.deepmerge = factory();
-    }
-}(this, function () {
-
-return function deepmerge(target, src) {
-    var array = Array.isArray(src);
-    var dst = array && [] || {};
-
-    if (array) {
-        target = target || [];
-        dst = dst.concat(target);
-        src.forEach(function(e, i) {
-            if (typeof dst[i] === 'undefined') {
-                dst[i] = e;
-            } else if (typeof e === 'object') {
-                dst[i] = deepmerge(target[i], e);
-            } else {
-                if (target.indexOf(e) === -1) {
-                    dst.push(e);
-                }
-            }
-        });
-    } else {
-        if (target && typeof target === 'object') {
-            Object.keys(target).forEach(function (key) {
-                dst[key] = target[key];
-            })
-        }
-        Object.keys(src).forEach(function (key) {
-            if (typeof src[key] !== 'object' || !src[key]) {
-                dst[key] = src[key];
-            }
-            else {
-                if (!target[key]) {
-                    dst[key] = src[key];
-                } else {
-                    dst[key] = deepmerge(target[key], src[key]);
-                }
-            }
-        });
-    }
-
-    return dst;
-}
-
-}));
-
-},{}],4:[function(require,module,exports){
-
-/**
- * isArray
- */
-
-var isArray = Array.isArray;
-
-/**
- * toString
- */
-
-var str = Object.prototype.toString;
-
-/**
- * Whether or not the given `val`
- * is an array.
- *
- * example:
- *
- *        isArray([]);
- *        // > true
- *        isArray(arguments);
- *        // > false
- *        isArray('');
- *        // > false
- *
- * @param {mixed} val
- * @return {bool}
- */
-
-module.exports = isArray || function (val) {
-  return !! val && '[object Array]' == str.call(val);
-};
-
-},{}]},{},[1])(1)
-});
+})));

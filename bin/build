@@ -1,0 +1,49 @@
+#!/usr/bin/env node
+
+const path = require('path')
+const fs = require('fs')
+const rollup = require('rollup')
+const babel = require('rollup-plugin-babel')
+const commonjs = require('rollup-plugin-commonjs')
+const nodeResolve = require('rollup-plugin-node-resolve')
+const UglifyJS = require('uglify-js')
+
+const root = path.resolve(__dirname, '..')
+const entry = path.join(root, 'src', 'domator.js')
+
+const output = {
+  node: path.join(root, 'domator.js'),
+  browser: path.join(root, 'dist', 'domator.js'),
+  min: path.join(root, 'dist', 'domator.min.js'),
+}
+
+rollup.rollup({
+  entry: entry,
+  plugins: [
+    babel({ exclude: 'node_modules/**' })
+  ]
+}).then(function (bundle) {
+  bundle.write({
+    format: 'cjs',
+    dest: output.node
+  })
+}).catch(console.error.bind(console))
+
+
+rollup.rollup({
+  entry: entry,
+  plugins: [
+    nodeResolve(),
+    commonjs({ include: 'node_modules/**' }),
+    babel({ exclude: 'node_modules/**' })
+  ]
+}).then(function (bundle) {
+  return bundle.write({
+    format: 'umd',
+    dest: output.browser,
+    moduleName: 'domator',
+  })
+}).then(function () {
+  const min = UglifyJS.minify(output.browser)
+  return fs.writeFileSync(output.min, min.code)
+}).catch(console.error.bind(console))

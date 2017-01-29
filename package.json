@@ -3,11 +3,10 @@
   "version": "1.2.0",
   "description": "Minimal & Fast DOM creation.",
   "main": "domator.js",
-  "browser": "dist/domator.js",
   "scripts": {
     "test": "mocha --require babel-core/register",
-    "compile": "rollup -c && browserify domator.js -s domator -o dist/domator.js && uglifyjs dist/domator.js > dist/domator.min.js",
-    "prepublish": "npm run compile"
+    "build": "bin/build",
+    "prepublish": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -26,18 +25,17 @@
   },
   "homepage": "https://github.com/mjlescano/domator#readme",
   "devDependencies": {
-    "babel-core": "^6.10.4",
-    "babel-preset-es2015": "^6.9.0",
-    "babel-preset-es2015-rollup": "^1.1.1",
-    "browserify": "^13.0.0",
-    "browserify-umdify": "^1.0.3",
+    "babel-core": "~6.22.1",
+    "babel-preset-es2015-rollup": "~3.0.0",
     "jsdom": "^7.2.2",
     "mocha": "^2.3.4",
     "mocha-standard": "^1.0.0",
-    "rollup": "^0.34.1",
-    "rollup-plugin-babel": "^2.6.1",
+    "rollup": "^0.41.4",
+    "rollup-plugin-babel": "^2.7.1",
+    "rollup-plugin-commonjs": "~7.0.0",
+    "rollup-plugin-node-resolve": "~2.0.0",
     "standard": "^5.4.1",
-    "uglifyify": "^3.0.1"
+    "uglify-js": "~2.7.5"
   },
   "dependencies": {
     "array-foreach": "^1.0.1",
