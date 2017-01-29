@@ -3,11 +3,11 @@ import forEach from 'array-foreach'
 import deepmerge from 'deepmerge'
 
 const regexes = {
-  tag: /^([a-z0-9\-]+)/,
-  id: /^#([a-z0-9\-]+)/,
-  className: /^\.([a-z0-9\-]+)/,
-  attr: /^\[([a-z\-0-9]+)(?:="([^"]+)")?\]/,
-  text: /^\s(.+)/
+  tag: /^([a-z0-9\-]+)/i,
+  id: /^#([a-z0-9\-]+)/i,
+  className: /^\.([a-z0-9\-]+)/i,
+  attr: /^\[([a-z\-0-9]+)(?:="([^"]+)")?\]/i,
+  text: /^\s(.*)/
 }
 
 let doc
@@ -45,7 +45,7 @@ domator.create = function create (name = '', attrs = {}) {
   const el = doc.createElement(attrs.tag || 'div')
   delete attrs.tag
 
-  if (attrs.text) {
+  if ('text' in attrs) {
     el.textContent = attrs.text
     delete attrs.text
   }

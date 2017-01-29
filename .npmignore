@@ -1,1 +1,5 @@
-src/
+.babelrc
+/src
+/test
+rollup.config.js
+README.md

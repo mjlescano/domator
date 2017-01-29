@@ -127,4 +127,34 @@ describe('domator', function () {
 
     assert(expected.isEqualNode(element))
   })
+
+  it('should allow empty text string to be supplied', function () {
+    // with domator shorthand
+    const shorthandElement = d('div ')
+    // with domator text attr
+    const attrElement = d('div', { text: '' })
+
+    // with document
+    const expected = document.createElement('div')
+
+    assert(expected.isEqualNode(shorthandElement))
+    assert(expected.isEqualNode(attrElement))
+  })
+
+  it('should allow uppercase characters in selector strings', function () {
+    // with domator
+    const id = 'someId'
+    const className = 'someClass'
+    const attr = ['attrName', 'attrValue']
+    const template = `div#${id}.${className}[${attr[0]}="${attr[1]}"]`
+    const element = d(template)
+
+    // with document
+    const expected = document.createElement('div')
+    expected.id = id
+    expected.classList.add(className)
+    expected.setAttribute(attr[0], attr[1])
+
+    assert(expected.isEqualNode(element))
+  })
 })
