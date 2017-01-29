@@ -3,6 +3,7 @@
   "version": "1.1.2",
   "description": "Minimal & Fast DOM creation.",
   "main": "domator.js",
+  "browser": "dist/domator.js",
   "scripts": {
     "test": "mocha --require babel-core/register",
     "compile": "rollup -c && browserify domator.js -s domator -o dist/domator.js && uglifyjs dist/domator.js > dist/domator.min.js",
