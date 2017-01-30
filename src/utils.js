@@ -1,4 +1,5 @@
 import deepmerge from 'deepmerge'
+import { getDocument } from './document'
 
 const regexes = {
   tag: /^([a-z0-9\-]+)/i,
@@ -42,7 +43,7 @@ export function parseSelector (selector) {
   return attrs
 }
 
-export function create (doc, selector = '', attrs = {}) {
+export function create (selector = '', attrs = {}) {
   const selAttrs = parseSelector(selector)
 
   ;['class', 'className'].forEach(key => {
@@ -52,7 +53,7 @@ export function create (doc, selector = '', attrs = {}) {
 
   attrs = deepmerge(selAttrs, attrs)
 
-  const el = doc.createElement(attrs.tag || 'div')
+  const el = getDocument().createElement(attrs.tag || 'div')
   delete attrs.tag
 
   if ('text' in attrs) {
@@ -65,8 +66,8 @@ export function create (doc, selector = '', attrs = {}) {
   return el
 }
 
-export function toString (doc, node) {
-  const div = doc.createElement('div')
+export function toString (node) {
+  const div = getDocument().createElement('div')
 
   if ('outerHTML' in div) return node.outerHTML
   div.appendChild(node.cloneNode(true))
@@ -86,6 +87,21 @@ export function setAttributes (el, attrs = {}) {
     if (val === undefined || val === null) val = ''
 
     el.setAttribute(prop, val)
+  }
+
+  return el
+}
+
+export function appendChildren (el, ...children) {
+  switch (children.length) {
+    case 0: break
+    case 1:
+      el.appendChild(children[0])
+      break
+    default:
+      const wrapper = getDocument().createDocumentFragment()
+      children.forEach((child) => wrapper.appendChild(child))
+      el.appendChild(wrapper)
   }
 
   return el
