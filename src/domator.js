@@ -1,11 +1,10 @@
 import isArray from 'is-array'
 import forEach from 'array-foreach'
-import deepmerge from 'deepmerge'
-import { toString, setAttributes, parseSelector } from './utils'
+import * as utils from './utils'
 
 let doc
 
-function domator (...args) {
+export default function domator (...args) {
   if (!doc) {
     throw new Error('Need to call domator.setDocument(document) first.')
   }
@@ -13,45 +12,26 @@ function domator (...args) {
   return render(parse(args))
 }
 
-domator.setDocument = function setDocument (newDoc) {
+export function setDocument (newDoc) {
   doc = newDoc
   return domator
 }
 
-domator.toString = function _toString (node) {
-  return toString(node, doc)
+export function toString (...args) {
+  return utils.toString(doc, ...args)
 }
 
-domator.create = function create (selector = '', attrs = {}) {
-  const selAttrs = parseSelector(selector)
-
-  ;['class', 'className'].forEach(key => {
-    if (typeof selAttrs[key] === 'string') selAttrs[key] = [selAttrs[key]]
-    if (typeof attrs[key] === 'string') attrs[key] = [attrs[key]]
-  })
-
-  attrs = deepmerge(selAttrs, attrs)
-
-  const el = doc.createElement(attrs.tag || 'div')
-  delete attrs.tag
-
-  if ('text' in attrs) {
-    el.textContent = attrs.text
-    delete attrs.text
-  }
-
-  setAttributes(el, attrs)
-
-  return el
+export function create (...args) {
+  return utils.create(doc, ...args)
 }
 
-function render (item) {
-  if (isArray(item)) {
-    if (item.length === 1) return render(item[0])
+function render (items) {
+  if (isArray(items)) {
+    if (items.length === 1) return render(items[0])
 
     const wrapper = doc.createDocumentFragment()
 
-    forEach(item, function (item) {
+    forEach(items, function (item) {
       let el = render(item)
       wrapper.appendChild(el)
     })
@@ -59,10 +39,16 @@ function render (item) {
     return wrapper
   }
 
+  return renderItem(items)
+}
+
+function renderItem (item = {}) {
+  if (!item.tag && !item.el) item.tag = 'div'
+
   if (item.tag) {
-    item.el = domator.create(item.tag, item.attrs)
+    item.el = utils.create(doc, item.tag, item.attrs)
   } else {
-    setAttributes(item.el, item.attrs)
+    utils.setAttributes(doc, item.el, item.attrs)
   }
 
   if (item.children) {

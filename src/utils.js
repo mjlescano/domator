@@ -1,3 +1,5 @@
+import deepmerge from 'deepmerge'
+
 const regexes = {
   tag: /^([a-z0-9\-]+)/i,
   id: /^#([a-z0-9\-]+)/i,
@@ -6,9 +8,9 @@ const regexes = {
   text: /^\s(.*)/
 }
 
-export function parseSelector (name) {
+export function parseSelector (selector) {
   const attrs = {}
-  let pending = name
+  let pending = selector
 
   let m
   do {
@@ -34,13 +36,36 @@ export function parseSelector (name) {
   }
 
   if (pending) {
-    throw new Error(`There was an error when parsing element name: "${name}"`)
+    throw new Error(`There was an error when parsing element: "${selector}"`)
   }
 
   return attrs
 }
 
-export function toString (node, doc = window.document) {
+export function create (doc, selector = '', attrs = {}) {
+  const selAttrs = parseSelector(selector)
+
+  ;['class', 'className'].forEach(key => {
+    if (typeof selAttrs[key] === 'string') selAttrs[key] = [selAttrs[key]]
+    if (typeof attrs[key] === 'string') attrs[key] = [attrs[key]]
+  })
+
+  attrs = deepmerge(selAttrs, attrs)
+
+  const el = doc.createElement(attrs.tag || 'div')
+  delete attrs.tag
+
+  if ('text' in attrs) {
+    el.textContent = attrs.text
+    delete attrs.text
+  }
+
+  setAttributes(el, attrs)
+
+  return el
+}
+
+export function toString (doc, node) {
   const div = doc.createElement('div')
 
   if ('outerHTML' in div) return node.outerHTML
