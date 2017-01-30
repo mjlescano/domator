@@ -1,5 +1,4 @@
 import isArray from 'is-array'
-import forEach from 'array-foreach'
 import { getDocument } from './document'
 import * as utils from './utils'
 
@@ -10,10 +9,6 @@ export {
 } from './utils'
 
 export default function domator (...args) {
-  if (!getDocument()) {
-    throw new Error('Need to call domator.setDocument(document) first.')
-  }
-
   return render(parse(args))
 }
 

@@ -8,5 +8,9 @@ export function setDocument (newDoc) {
 }
 
 export function getDocument () {
+  if (!doc) {
+    throw new Error('Need to call domator.setDocument(document) first.')
+  }
+
   return doc
 }

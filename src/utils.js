@@ -1,4 +1,5 @@
 import deepmerge from 'deepmerge'
+import forEach from 'array-foreach'
 import { getDocument } from './document'
 
 const regexes = {
@@ -100,7 +101,7 @@ export function appendChildren (el, ...children) {
       break
     default:
       const wrapper = getDocument().createDocumentFragment()
-      children.forEach((child) => wrapper.appendChild(child))
+      forEach(children, (child) => wrapper.appendChild(child))
       el.appendChild(wrapper)
   }
 
