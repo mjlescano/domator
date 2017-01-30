@@ -1,13 +1,21 @@
 import isArray from 'is-array'
 import deepmerge from 'deepmerge'
-import { getDocument } from './document'
+import { getDocument, setDocument } from './document'
 import * as utils from './utils'
 
-export * from './utils'
+/**
+ * Default domator export
+ */
 
 export default function domator (...args) {
   return render(parse(args))
 }
+
+/**
+ * Monkey patch to be able to use default and named exports
+ */
+
+Object.assign(domator, utils, {setDocument})
 
 function render (items) {
   if (isArray(items)) {
@@ -33,17 +41,19 @@ function renderItem (item = {}) {
     const selAttrs = utils.parseSelector(item.selector)
     const attrs = item.attrs
 
-    ;['class', 'className'].forEach(key => {
-      if (typeof selAttrs[key] === 'string') selAttrs[key] = [selAttrs[key]]
-      if (typeof attrs[key] === 'string') attrs[key] = [attrs[key]]
+    ;['class', 'className'].forEach((key) => {
+      if (selAttrs[key] && attrs[key]) attrs[key] += ` ${selAttrs[key]}`
     })
 
     item.attrs = deepmerge(selAttrs, attrs)
 
-    item.el = utils.create(item.tag, item.attrs)
+    item.el = utils.create(item.attrs)
   }
 
-  if (item.children) utils.appendChildren(item.el, item.children)
+  if (item.children.length) {
+    const children = item.children.map(renderItem)
+    utils.appendChildren(item.el, children)
+  }
 
   return item.el
 }
@@ -57,7 +67,10 @@ function parse (args) {
 
 function parseNext (args) {
   if (!args.length) return null
-  var item = {children: []}
+  var item = {
+    attrs: {},
+    children: []
+  }
 
   while (args.length) {
     var val = args.shift()

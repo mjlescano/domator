@@ -40,6 +40,9 @@ export function parseSelector (selector = 'div') {
     throw new Error(`There was an error when parsing element: "${selector}"`)
   }
 
+  if (!attrs.tag) attrs.tag = 'div'
+  if (attrs.className) attrs.className = attrs.className.join(' ')
+
   return attrs
 }
 
@@ -62,8 +65,11 @@ export function toString (node) {
 }
 
 export function setAttributes (el, attrs = {}) {
-  if (typeof attrs['class'] === 'string') attrs['class'] = [attrs['class']]
-  attrs['class'] = (attrs['class'] || []).concat(attrs.className).join(' ')
+  if (attrs['class'] && attrs.className) {
+    attrs['class'] += ` ${attrs.className}`
+  } else if (attrs.className) {
+    attrs['class'] = attrs.className
+  }
 
   if (attrs.className) delete attrs.className
   if (!attrs['class']) delete attrs['class']
@@ -84,7 +90,7 @@ export function setAttributes (el, attrs = {}) {
   return el
 }
 
-export function appendChildren (el, ...children) {
+export function appendChildren (el, children) {
   switch (children.length) {
     case 0: break
     case 1:

@@ -101,10 +101,12 @@ describe('domator', function () {
 
   it('should join classes from the selector and attributes.', function () {
     // with domator
-    const element = d('div.two', {
+    const element = d('div.three', {
       'class': 'one',
-      className: 'three'
+      className: 'two'
     })
+
+    console.log(element.className)
 
     // with document
     const expected = document.createElement('div')
