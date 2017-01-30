@@ -106,8 +106,6 @@ describe('domator', function () {
       className: 'two'
     })
 
-    console.log(element.className)
-
     // with document
     const expected = document.createElement('div')
     expected.classList.add('one')
