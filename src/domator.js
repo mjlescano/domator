@@ -1,12 +1,9 @@
 import isArray from 'is-array'
+import deepmerge from 'deepmerge'
 import { getDocument } from './document'
 import * as utils from './utils'
 
-export {
-  toString,
-  create,
-  setDocument
-} from './utils'
+export * from './utils'
 
 export default function domator (...args) {
   return render(parse(args))
@@ -14,7 +11,7 @@ export default function domator (...args) {
 
 function render (items) {
   if (isArray(items)) {
-    if (items.length === 1) return render(items[0])
+    if (items.length === 1) return renderItem(items[0])
 
     const wrapper = getDocument().createDocumentFragment()
 
@@ -30,12 +27,20 @@ function render (items) {
 }
 
 function renderItem (item = {}) {
-  if (!item.tag && !item.el) item.tag = 'div'
-
-  if (item.tag) {
-    item.el = utils.create(item.tag, item.attrs)
-  } else {
+  if (item.el) {
     utils.setAttributes(item.el, item.attrs)
+  } else {
+    const selAttrs = utils.parseSelector(item.selector)
+    const attrs = item.attrs
+
+    ;['class', 'className'].forEach(key => {
+      if (typeof selAttrs[key] === 'string') selAttrs[key] = [selAttrs[key]]
+      if (typeof attrs[key] === 'string') attrs[key] = [attrs[key]]
+    })
+
+    item.attrs = deepmerge(selAttrs, attrs)
+
+    item.el = utils.create(item.tag, item.attrs)
   }
 
   if (item.children) utils.appendChildren(item.el, item.children)
@@ -60,7 +65,7 @@ function parseNext (args) {
     if (val instanceof getDocument().defaultView.Node) {
       item.el = val
     } else if (typeof val === 'string') {
-      item.tag = val
+      item.selector = val
     } else if (isArray(val)) {
       let child
       while ((child = parseNext(val))) item.children.push(child)
@@ -76,5 +81,3 @@ function parseNext (args) {
 
   return item
 }
-
-export default domator

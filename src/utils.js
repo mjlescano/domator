@@ -1,4 +1,3 @@
-import deepmerge from 'deepmerge'
 import forEach from 'array-foreach'
 import { getDocument } from './document'
 
@@ -10,7 +9,7 @@ const regexes = {
   text: /^\s(.*)/
 }
 
-export function parseSelector (selector) {
+export function parseSelector (selector = 'div') {
   const attrs = {}
   let pending = selector
 
@@ -44,23 +43,9 @@ export function parseSelector (selector) {
   return attrs
 }
 
-export function create (selector = '', attrs = {}) {
-  const selAttrs = parseSelector(selector)
-
-  ;['class', 'className'].forEach(key => {
-    if (typeof selAttrs[key] === 'string') selAttrs[key] = [selAttrs[key]]
-    if (typeof attrs[key] === 'string') attrs[key] = [attrs[key]]
-  })
-
-  attrs = deepmerge(selAttrs, attrs)
-
+export function create (attrs = {}) {
   const el = getDocument().createElement(attrs.tag || 'div')
   delete attrs.tag
-
-  if ('text' in attrs) {
-    el.textContent = attrs.text
-    delete attrs.text
-  }
 
   setAttributes(el, attrs)
 
@@ -77,10 +62,16 @@ export function toString (node) {
 }
 
 export function setAttributes (el, attrs = {}) {
+  if (typeof attrs['class'] === 'string') attrs['class'] = [attrs['class']]
   attrs['class'] = (attrs['class'] || []).concat(attrs.className).join(' ')
 
   if (attrs.className) delete attrs.className
   if (!attrs['class']) delete attrs['class']
+
+  if ('text' in attrs) {
+    el.textContent = attrs.text
+    delete attrs.text
+  }
 
   for (let prop in attrs) if (attrs.hasOwnProperty(prop)) {
     let val = attrs[prop]
