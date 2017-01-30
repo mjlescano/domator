@@ -189,12 +189,17 @@ function setAttributes(el) {
   var attrs = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
   attrs['class'] = (attrs['class'] || []).concat(attrs.className).join(' ');
+
   if (attrs.className) delete attrs.className;
   if (!attrs['class']) delete attrs['class'];
 
   for (var prop in attrs) {
     if (attrs.hasOwnProperty(prop)) {
-      el.setAttribute(prop, attrs[prop] || prop);
+      var val = attrs[prop];
+
+      if (val === undefined || val === null) val = '';
+
+      el.setAttribute(prop, val);
     }
   }return el;
 }
