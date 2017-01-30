@@ -57,11 +57,16 @@ domator.create = function create (name = '', attrs = {}) {
 
 function setAttributes (el, attrs = {}) {
   attrs['class'] = (attrs['class'] || []).concat(attrs.className).join(' ')
+
   if (attrs.className) delete attrs.className
   if (!attrs['class']) delete attrs['class']
 
   for (let prop in attrs) if (attrs.hasOwnProperty(prop)) {
-    el.setAttribute(prop, attrs[prop] || prop)
+    let val = attrs[prop]
+
+    if (val === undefined || val === null) val = ''
+
+    el.setAttribute(prop, val)
   }
 
   return el
@@ -71,7 +76,7 @@ function render (item) {
   if (isArray(item)) {
     if (item.length === 1) return render(item[0])
 
-    let wrapper = doc.createDocumentFragment()
+    const wrapper = doc.createDocumentFragment()
 
     forEach(item, function (item) {
       let el = render(item)
