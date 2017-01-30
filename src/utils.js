@@ -14,6 +14,13 @@ export function parseSelector (selector = 'div') {
   let pending = selector
 
   let m
+
+  // Check if it's an only text node
+  if (pending && (m = pending.match(regexes.text))) {
+    attrs.text = m[1]
+    return attrs
+  }
+
   do {
     m = null
 
@@ -31,6 +38,8 @@ export function parseSelector (selector = 'div') {
     if (m) pending = pending.slice(m[0].length)
   } while (m)
 
+  if (!attrs.tag && selector[0] !== ' ') attrs.tag = 'div'
+
   if (pending && (m = pending.match(regexes.text))) {
     attrs.text = m[1]
     pending = pending.slice(m[0].length)
@@ -40,7 +49,6 @@ export function parseSelector (selector = 'div') {
     throw new Error(`There was an error when parsing element: "${selector}"`)
   }
 
-  if (!attrs.tag) attrs.tag = 'div'
   if (attrs.className) attrs.className = attrs.className.join(' ')
 
   return attrs
@@ -74,11 +82,6 @@ export function setAttributes (el, attrs = {}) {
   if (attrs.className) delete attrs.className
   if (!attrs['class']) delete attrs['class']
 
-  if ('text' in attrs) {
-    el.textContent = attrs.text
-    delete attrs.text
-  }
-
   for (let prop in attrs) if (attrs.hasOwnProperty(prop)) {
     let val = attrs[prop]
 
@@ -103,4 +106,14 @@ export function appendChildren (el, children) {
   }
 
   return el
+}
+
+export function removeChildren (el) {
+  while (el.firstChild) el.removeChild(el.firstChild)
+  return el
+}
+
+export function setChildren (el, children) {
+  removeChildren(el)
+  return appendChildren(el, children)
 }

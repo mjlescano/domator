@@ -136,6 +136,7 @@ describe('domator', function () {
 
     // with document
     const expected = document.createElement('div')
+    expected.appendChild(document.createTextNode(''))
 
     assert(expected.isEqualNode(shorthandElement))
     assert(expected.isEqualNode(attrElement))
@@ -156,5 +157,80 @@ describe('domator', function () {
     expected.setAttribute(attr[0], attr[1])
 
     assert(expected.isEqualNode(element))
+  })
+
+  it('should update an existing element childs', function () {
+    const data = {
+      title: 'Some Title',
+      text: 'Some lengthy text'
+    }
+
+    const element = d('div', [
+      `h1 ${data.title}`,
+      `p ${data.text}`
+    ])
+
+    const expected1 = document.createElement('div')
+    const title1 = document.createElement('h1')
+    title1.appendChild(document.createTextNode(data.title))
+    expected1.appendChild(title1)
+    const text1 = document.createElement('p')
+    text1.appendChild(document.createTextNode(data.text))
+    expected1.appendChild(text1)
+
+    assert(expected1.isEqualNode(element))
+
+    data.title = 'Some Changed Title'
+    data.Text = 'Some changed text on the model'
+
+    d(element, [
+      `h1 ${data.title}`,
+      `p ${data.text}`
+    ])
+
+    const expected2 = document.createElement('div')
+    const title2 = document.createElement('h1')
+    title2.appendChild(document.createTextNode(data.title))
+    expected2.appendChild(title2)
+    const text2 = document.createElement('p')
+    text2.appendChild(document.createTextNode(data.text))
+    expected2.appendChild(text2)
+
+    assert(expected2.isEqualNode(element))
+  })
+})
+
+describe('domator.parseSelector', function () {
+  const { parseSelector } = d
+
+  it('should parse only text selector', function () {
+    const attrs = parseSelector(' Hello!')
+
+    const expected = {
+      text: 'Hello!'
+    }
+
+    assert.deepEqual(expected, attrs)
+  })
+
+  it('should parse return empty text field', function () {
+    const attrs = parseSelector('div ')
+
+    const expected = {
+      tag: 'div',
+      text: ''
+    }
+
+    assert.deepEqual(expected, attrs)
+  })
+})
+
+describe('domator.toString', function () {
+  it('should convert a dom element to string', function () {
+    const str = d.toString(d('div'))
+
+    const expected = '<div></div>'
+
+    assert(expected === str)
   })
 })
