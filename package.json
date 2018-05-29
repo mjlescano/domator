@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "array-foreach": "^1.0.1",
-    "deepmerge": "^0.2.10",
+    "deepmerge": "^1.3.2",
     "is-array": "^1.0.1"
   },
   "standard": {

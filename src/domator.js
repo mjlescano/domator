@@ -35,9 +35,7 @@ function render (items) {
 }
 
 function renderItem (item = {}) {
-  if (item.el) {
-    utils.setAttributes(item.el, item.attrs)
-  } else {
+  if (item.selector) {
     const selAttrs = utils.parseSelector(item.selector)
     const attrs = item.attrs
 
@@ -45,15 +43,31 @@ function renderItem (item = {}) {
       if (selAttrs[key] && attrs[key]) attrs[key] += ` ${selAttrs[key]}`
     })
 
-    item.attrs = deepmerge(selAttrs, attrs)
-
-    item.el = utils.create(item.attrs)
+    item.attrs = deepmerge.all([{}, selAttrs, attrs])
   }
 
-  if (item.children.length) {
-    const children = item.children.map(renderItem)
-    utils.appendChildren(item.el, children)
+  if (!item.el && item.attrs.tag) {
+    item.el = getDocument().createElement(item.attrs.tag)
+    delete item.attrs.tag
   }
+
+  if ('text' in item.attrs) {
+    if (item.el) {
+      item.children.unshift({attrs: {text: item.attrs.text}})
+      delete item.attrs.text
+    } else {
+      return getDocument().createTextNode(item.attrs.text)
+    }
+  }
+
+  if (item.el) {
+    utils.setAttributes(item.el, item.attrs)
+  } else {
+    item.el = getDocument().createDocumentFragment()
+  }
+
+  const children = item.children.map(renderItem)
+  utils.setChildren(item.el, children)
 
   return item.el
 }

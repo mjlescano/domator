@@ -56,46 +56,78 @@ var index$1 = createCommonjsModule(function (module, exports) {
     }
 }(commonjsGlobal, function () {
 
-return function deepmerge(target, src) {
-    var array = Array.isArray(src);
-    var dst = array && [] || {};
+function isMergeableObject(val) {
+    var nonNullObject = val && typeof val === 'object';
 
-    if (array) {
-        target = target || [];
-        dst = dst.concat(target);
-        src.forEach(function(e, i) {
-            if (typeof dst[i] === 'undefined') {
-                dst[i] = e;
-            } else if (typeof e === 'object') {
-                dst[i] = deepmerge(target[i], e);
-            } else {
-                if (target.indexOf(e) === -1) {
-                    dst.push(e);
-                }
-            }
-        });
-    } else {
-        if (target && typeof target === 'object') {
-            Object.keys(target).forEach(function (key) {
-                dst[key] = target[key];
-            });
+    return nonNullObject
+        && Object.prototype.toString.call(val) !== '[object RegExp]'
+        && Object.prototype.toString.call(val) !== '[object Date]'
+}
+
+function emptyTarget(val) {
+    return Array.isArray(val) ? [] : {}
+}
+
+function cloneIfNecessary(value, optionsArgument) {
+    var clone = optionsArgument && optionsArgument.clone === true;
+    return (clone && isMergeableObject(value)) ? deepmerge(emptyTarget(value), value, optionsArgument) : value
+}
+
+function defaultArrayMerge(target, source, optionsArgument) {
+    var destination = target.slice();
+    source.forEach(function(e, i) {
+        if (typeof destination[i] === 'undefined') {
+            destination[i] = cloneIfNecessary(e, optionsArgument);
+        } else if (isMergeableObject(e)) {
+            destination[i] = deepmerge(target[i], e, optionsArgument);
+        } else if (target.indexOf(e) === -1) {
+            destination.push(cloneIfNecessary(e, optionsArgument));
         }
-        Object.keys(src).forEach(function (key) {
-            if (typeof src[key] !== 'object' || !src[key]) {
-                dst[key] = src[key];
-            }
-            else {
-                if (!target[key]) {
-                    dst[key] = src[key];
-                } else {
-                    dst[key] = deepmerge(target[key], src[key]);
-                }
-            }
+    });
+    return destination
+}
+
+function mergeObject(target, source, optionsArgument) {
+    var destination = {};
+    if (isMergeableObject(target)) {
+        Object.keys(target).forEach(function (key) {
+            destination[key] = cloneIfNecessary(target[key], optionsArgument);
         });
     }
-
-    return dst;
+    Object.keys(source).forEach(function (key) {
+        if (!isMergeableObject(source[key]) || !target[key]) {
+            destination[key] = cloneIfNecessary(source[key], optionsArgument);
+        } else {
+            destination[key] = deepmerge(target[key], source[key], optionsArgument);
+        }
+    });
+    return destination
 }
+
+function deepmerge(target, source, optionsArgument) {
+    var array = Array.isArray(source);
+    var options = optionsArgument || { arrayMerge: defaultArrayMerge };
+    var arrayMerge = options.arrayMerge || defaultArrayMerge;
+
+    if (array) {
+        return Array.isArray(target) ? arrayMerge(target, source, optionsArgument) : cloneIfNecessary(source, optionsArgument)
+    } else {
+        return mergeObject(target, source, optionsArgument)
+    }
+}
+
+deepmerge.all = function deepmergeAll(array, optionsArgument) {
+    if (!Array.isArray(array) || array.length < 2) {
+        throw new Error('first argument should be an array with at least two elements')
+    }
+
+    // we are sure there are at least 2 values, so it is safe to have no initial value
+    return array.reduce(function(prev, next) {
+        return deepmerge(prev, next, optionsArgument)
+    })
+};
+
+return deepmerge
 
 }));
 });
@@ -153,6 +185,13 @@ function parseSelector() {
   var pending = selector;
 
   var m = void 0;
+
+  // Check if it's an only text node
+  if (pending && (m = pending.match(regexes.text))) {
+    attrs.text = m[1];
+    return attrs;
+  }
+
   do {
     m = null;
 
@@ -170,6 +209,8 @@ function parseSelector() {
     if (m) pending = pending.slice(m[0].length);
   } while (m);
 
+  if (!attrs.tag && selector[0] !== ' ') attrs.tag = 'div';
+
   if (pending && (m = pending.match(regexes.text))) {
     attrs.text = m[1];
     pending = pending.slice(m[0].length);
@@ -179,7 +220,6 @@ function parseSelector() {
     throw new Error('There was an error when parsing element: "' + selector + '"');
   }
 
-  if (!attrs.tag) attrs.tag = 'div';
   if (attrs.className) attrs.className = attrs.className.join(' ');
 
   return attrs;
@@ -217,11 +257,6 @@ function setAttributes(el) {
   if (attrs.className) delete attrs.className;
   if (!attrs['class']) delete attrs['class'];
 
-  if ('text' in attrs) {
-    el.textContent = attrs.text;
-    delete attrs.text;
-  }
-
   for (var prop in attrs) {
     if (attrs.hasOwnProperty(prop)) {
       var val = attrs[prop];
@@ -253,12 +288,25 @@ function appendChildren(el, children) {
   return el;
 }
 
+function removeChildren(el) {
+  while (el.firstChild) {
+    el.removeChild(el.firstChild);
+  }return el;
+}
+
+function setChildren(el, children) {
+  removeChildren(el);
+  return appendChildren(el, children);
+}
+
 var utils = Object.freeze({
 	parseSelector: parseSelector,
 	create: create,
 	toString: toString,
 	setAttributes: setAttributes,
-	appendChildren: appendChildren
+	appendChildren: appendChildren,
+	removeChildren: removeChildren,
+	setChildren: setChildren
 });
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
@@ -313,25 +361,39 @@ function render(items) {
 function renderItem() {
   var item = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-  if (item.el) {
-    setAttributes(item.el, item.attrs);
-  } else {
+  if (item.selector) {
     (function () {
       var selAttrs = parseSelector(item.selector);
       var attrs = item.attrs;['class', 'className'].forEach(function (key) {
         if (selAttrs[key] && attrs[key]) attrs[key] += ' ' + selAttrs[key];
       });
 
-      item.attrs = index$1(selAttrs, attrs);
-
-      item.el = create(item.attrs);
+      item.attrs = index$1.all([{}, selAttrs, attrs]);
     })();
   }
 
-  if (item.children.length) {
-    var children = item.children.map(renderItem);
-    appendChildren(item.el, children);
+  if (!item.el && item.attrs.tag) {
+    item.el = getDocument().createElement(item.attrs.tag);
+    delete item.attrs.tag;
   }
+
+  if ('text' in item.attrs) {
+    if (item.el) {
+      item.children.unshift({ attrs: { text: item.attrs.text } });
+      delete item.attrs.text;
+    } else {
+      return getDocument().createTextNode(item.attrs.text);
+    }
+  }
+
+  if (item.el) {
+    setAttributes(item.el, item.attrs);
+  } else {
+    item.el = getDocument().createDocumentFragment();
+  }
+
+  var children = item.children.map(renderItem);
+  setChildren(item.el, children);
 
   return item.el;
 }

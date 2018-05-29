@@ -38,6 +38,13 @@ function parseSelector() {
   var pending = selector;
 
   var m = void 0;
+
+  // Check if it's an only text node
+  if (pending && (m = pending.match(regexes.text))) {
+    attrs.text = m[1];
+    return attrs;
+  }
+
   do {
     m = null;
 
@@ -55,6 +62,8 @@ function parseSelector() {
     if (m) pending = pending.slice(m[0].length);
   } while (m);
 
+  if (!attrs.tag && selector[0] !== ' ') attrs.tag = 'div';
+
   if (pending && (m = pending.match(regexes.text))) {
     attrs.text = m[1];
     pending = pending.slice(m[0].length);
@@ -64,7 +73,6 @@ function parseSelector() {
     throw new Error('There was an error when parsing element: "' + selector + '"');
   }
 
-  if (!attrs.tag) attrs.tag = 'div';
   if (attrs.className) attrs.className = attrs.className.join(' ');
 
   return attrs;
@@ -102,11 +110,6 @@ function setAttributes(el) {
   if (attrs.className) delete attrs.className;
   if (!attrs['class']) delete attrs['class'];
 
-  if ('text' in attrs) {
-    el.textContent = attrs.text;
-    delete attrs.text;
-  }
-
   for (var prop in attrs) {
     if (attrs.hasOwnProperty(prop)) {
       var val = attrs[prop];
@@ -138,12 +141,25 @@ function appendChildren(el, children) {
   return el;
 }
 
+function removeChildren(el) {
+  while (el.firstChild) {
+    el.removeChild(el.firstChild);
+  }return el;
+}
+
+function setChildren(el, children) {
+  removeChildren(el);
+  return appendChildren(el, children);
+}
+
 var utils = Object.freeze({
 	parseSelector: parseSelector,
 	create: create,
 	toString: toString,
 	setAttributes: setAttributes,
-	appendChildren: appendChildren
+	appendChildren: appendChildren,
+	removeChildren: removeChildren,
+	setChildren: setChildren
 });
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
@@ -198,25 +214,39 @@ function render(items) {
 function renderItem() {
   var item = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-  if (item.el) {
-    setAttributes(item.el, item.attrs);
-  } else {
+  if (item.selector) {
     (function () {
       var selAttrs = parseSelector(item.selector);
       var attrs = item.attrs;['class', 'className'].forEach(function (key) {
         if (selAttrs[key] && attrs[key]) attrs[key] += ' ' + selAttrs[key];
       });
 
-      item.attrs = deepmerge(selAttrs, attrs);
-
-      item.el = create(item.attrs);
+      item.attrs = deepmerge.all([{}, selAttrs, attrs]);
     })();
   }
 
-  if (item.children.length) {
-    var children = item.children.map(renderItem);
-    appendChildren(item.el, children);
+  if (!item.el && item.attrs.tag) {
+    item.el = getDocument().createElement(item.attrs.tag);
+    delete item.attrs.tag;
   }
+
+  if ('text' in item.attrs) {
+    if (item.el) {
+      item.children.unshift({ attrs: { text: item.attrs.text } });
+      delete item.attrs.text;
+    } else {
+      return getDocument().createTextNode(item.attrs.text);
+    }
+  }
+
+  if (item.el) {
+    setAttributes(item.el, item.attrs);
+  } else {
+    item.el = getDocument().createDocumentFragment();
+  }
+
+  var children = item.children.map(renderItem);
+  setChildren(item.el, children);
 
   return item.el;
 }
